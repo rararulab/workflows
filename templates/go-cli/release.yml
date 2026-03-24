@@ -1,0 +1,11 @@
+# Go release via git-cliff
+# Copy to: .github/workflows/release.yml
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  release:
+    uses: rararulab/workflows/.github/workflows/go-release.yml@main

@@ -4,27 +4,21 @@ Shared reusable GitHub Actions workflows.
 
 ## Workflows
 
-| Workflow | Description | Key Inputs |
-|----------|-------------|------------|
-| `rust-lint.yml` | fmt + cargo-deny | `runner`, `cargo-deny` |
-| `rust-test.yml` | clippy + doc + nextest | `runner`, `workspace`, `sccache` |
-| `rust-release-pr.yml` | release-plz PR creation | `runner` |
-| `rust-release-plz.yml` | release-plz publish | `runner`, `CARGO_REGISTRY_TOKEN` |
-| `rust-release-dist.yml` | cargo-dist + GitHub Release + Homebrew | `tag`, `homebrew-tap`, `minio-endpoint` |
-| `go-ci.yml` | golangci-lint + test + build | `go-version`, `build-binary`, `test-matrix` |
-| `go-release.yml` | git-cliff + GitHub Release | `version-file`, `cliff-config` |
-| `cleanup-branches.yml` | Delete stale release-plz branches | `branch-prefix` |
-| `deploy-pages.yml` | Build & deploy GitHub Pages | `build-command`, `output-dir` |
+| Workflow | Docs | Description |
+|----------|------|-------------|
+| [`rust-lint`](.github/workflows/rust-lint.yml) | [docs](docs/rust-lint.md) | fmt + cargo-deny |
+| [`rust-test`](.github/workflows/rust-test.yml) | [docs](docs/rust-test.md) | clippy + doc + nextest |
+| [`rust-release-pr`](.github/workflows/rust-release-pr.yml) | [docs](docs/rust-release-pr.md) | release-plz PR |
+| [`rust-release-plz`](.github/workflows/rust-release-plz.yml) | [docs](docs/rust-release-plz.md) | release-plz publish |
+| [`rust-release-dist`](.github/workflows/rust-release-dist.yml) | [docs](docs/rust-release-dist.md) | cargo-dist + Homebrew |
+| [`go-ci`](.github/workflows/go-ci.yml) | [docs](docs/go-ci.md) | lint + test + build |
+| [`go-release`](.github/workflows/go-release.yml) | [docs](docs/go-release.md) | git-cliff + GitHub Release |
+| [`cleanup-branches`](.github/workflows/cleanup-branches.yml) | [docs](docs/cleanup-branches.md) | Delete stale branches |
+| [`deploy-pages`](.github/workflows/deploy-pages.yml) | [docs](docs/deploy-pages.md) | GitHub Pages deploy |
 
-## Usage
+## Quick Start
 
-```yaml
-jobs:
-  lint:
-    uses: rararulab/workflows/.github/workflows/rust-lint.yml@main
-  test:
-    uses: rararulab/workflows/.github/workflows/rust-test.yml@main
-    with:
-      workspace: true
-      sccache: true
-```
+Copy a template from [`templates/`](templates/) into your repo's `.github/workflows/`.
+
+- **Rust crate** → [`templates/rust-crate/`](templates/rust-crate/)
+- **Go CLI** → [`templates/go-cli/`](templates/go-cli/)

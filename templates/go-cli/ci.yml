@@ -1,0 +1,15 @@
+# Go CLI CI
+# Copy to: .github/workflows/ci.yml
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    uses: rararulab/workflows/.github/workflows/go-ci.yml@main
+    with:
+      build-binary: my-cli  # <-- change this

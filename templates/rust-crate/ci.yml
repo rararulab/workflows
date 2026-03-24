@@ -1,0 +1,26 @@
+# Standard Rust crate CI
+# Copy to: .github/workflows/ci.yml
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    uses: rararulab/workflows/.github/workflows/rust-lint.yml@main
+  test:
+    uses: rararulab/workflows/.github/workflows/rust-test.yml@main
+  release-pr:
+    needs: [lint, test]
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    permissions:
+      contents: write
+      pull-requests: write
+    uses: rararulab/workflows/.github/workflows/rust-release-pr.yml@main

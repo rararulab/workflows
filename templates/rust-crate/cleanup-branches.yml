@@ -1,0 +1,11 @@
+# Clean up stale release-plz branches
+# Copy to: .github/workflows/cleanup-branches.yml
+name: Cleanup stale branches
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  cleanup:
+    uses: rararulab/workflows/.github/workflows/cleanup-branches.yml@main
