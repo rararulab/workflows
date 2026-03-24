@@ -1,0 +1,26 @@
+name: Cleanup stale branches
+
+on:
+  workflow_call:
+    inputs:
+      branch-prefix:
+        description: "Branch prefix to match for deletion (e.g. release-plz-)"
+        type: string
+        default: "release-plz-"
+
+permissions:
+  contents: write
+
+jobs:
+  delete-branch:
+    name: Delete closed PR branch
+    runs-on: ubuntu-latest
+    if: >-
+      github.event.pull_request.merged == false &&
+      startsWith(github.event.pull_request.head.ref, inputs.branch-prefix)
+    steps:
+      - name: Delete branch
+        run: |
+          gh api -X DELETE "repos/${{ github.repository }}/git/refs/heads/${{ github.event.pull_request.head.ref }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

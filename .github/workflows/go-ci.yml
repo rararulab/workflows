@@ -1,0 +1,117 @@
+name: Go CI
+
+on:
+  workflow_call:
+    inputs:
+      go-version:
+        description: "Go version to use"
+        type: string
+        default: "1.26"
+      runner:
+        description: "Runner label"
+        type: string
+        default: "ubuntu-latest"
+      build-binary:
+        description: "Binary name to build (leave empty to skip build job)"
+        type: string
+        default: ""
+      build-path:
+        description: "Go build path (e.g. . or ./cmd/app)"
+        type: string
+        default: "."
+      golangci-config:
+        description: "Path to golangci-lint config file"
+        type: string
+        default: ".golangci.yml"
+      test-matrix:
+        description: "JSON array of OS runners for test matrix"
+        type: string
+        default: '["ubuntu-latest", "macos-latest"]'
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ${{ inputs.runner }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ inputs.go-version }}
+          cache: true
+
+      - name: Verify go.mod is tidy
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod go.sum
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: latest
+          args: --timeout 5m --config ${{ inputs.golangci-config }}
+
+      - name: Run go vet
+        run: go vet ./...
+
+  test:
+    name: Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJson(inputs.test-matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ inputs.go-version }}
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Verify dependencies
+        run: go mod verify
+
+      - name: Run tests
+        run: go test -v -race -coverprofile=coverage.out ./...
+
+  build:
+    name: Build
+    if: ${{ inputs.build-binary != '' }}
+    runs-on: ${{ matrix.os }}
+    needs: [lint, test]
+    strategy:
+      matrix:
+        os: ${{ fromJson(inputs.test-matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ inputs.go-version }}
+          cache: true
+
+      - name: Build CLI
+        run: |
+          mkdir -p bin
+          go build -v -ldflags="-s -w" -o bin/${{ inputs.build-binary }} ${{ inputs.build-path }}
+
+      - name: Test CLI runs
+        run: ./bin/${{ inputs.build-binary }} --help
+
+      - name: Upload CLI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.build-binary }}-${{ matrix.os }}
+          path: bin/${{ inputs.build-binary }}
+          retention-days: 7

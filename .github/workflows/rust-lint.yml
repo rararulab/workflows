@@ -1,0 +1,73 @@
+name: Rust Lint
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        description: "Runner label"
+        type: string
+        default: "arc-runner-set"
+      cargo-deny:
+        description: "Run cargo-deny checks"
+        type: boolean
+        default: true
+
+concurrency:
+  group: lint-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+
+jobs:
+  rust-format:
+    name: Rust Format
+    runs-on: ${{ inputs.runner }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Check formatting
+        run: cargo +nightly fmt --all -- --check
+
+  cargo-deny:
+    name: Cargo Deny
+    if: ${{ inputs.cargo-deny }}
+    runs-on: ${{ inputs.runner }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Install cargo-deny
+        run: cargo install cargo-deny --locked 2>/dev/null || true
+
+      - name: Check advisories, licenses, bans
+        run: cargo deny check
+
+  lint-success:
+    name: Lint Success
+    runs-on: ${{ inputs.runner }}
+    needs: [rust-format, cargo-deny]
+    if: always()
+    steps:
+      - name: Check all lint jobs status
+        run: |
+          results=("${{ needs.rust-format.result }}" "${{ needs.cargo-deny.result }}")
+          for r in "${results[@]}"; do
+            if [[ "$r" != "success" && "$r" != "skipped" ]]; then
+              echo "One or more lint jobs failed"
+              exit 1
+            fi
+          done
+          echo "All lint jobs passed successfully"

@@ -1,0 +1,138 @@
+name: Rust Test
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        description: "Runner label"
+        type: string
+        default: "arc-runner-set"
+      workspace:
+        description: "Use --workspace flag for clippy/test/doc"
+        type: boolean
+        default: false
+      sccache:
+        description: "Enable sccache (requires MinIO on the runner network)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: rust-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -Dwarnings
+  RUST_BACKTRACE: true
+  CARGO_INCREMENTAL: false
+  CARGO_NET_RETRY: 10
+  RUSTUP_MAX_RETRIES: 10
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+
+jobs:
+  clippy:
+    name: Clippy
+    runs-on: ${{ inputs.runner }}
+    env:
+      RUSTC_WRAPPER: ${{ inputs.sccache && 'sccache' || '' }}
+      SCCACHE_BUCKET: ${{ inputs.sccache && 'sccache' || '' }}
+      SCCACHE_REGION: ${{ inputs.sccache && 'us-east-1' || '' }}
+      SCCACHE_ENDPOINT: ${{ inputs.sccache && 'http://10.0.0.167:9000' || '' }}
+      SCCACHE_S3_USE_SSL: ${{ inputs.sccache && 'false' || '' }}
+      AWS_ACCESS_KEY_ID: ${{ inputs.sccache && 'minioadmin' || '' }}
+      AWS_SECRET_ACCESS_KEY: ${{ inputs.sccache && 'minioadmin' || '' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Start sccache
+        if: ${{ inputs.sccache }}
+        run: sccache --start-server || true
+
+      - name: Run clippy
+        run: cargo clippy ${{ inputs.workspace && '--workspace' || '' }} --all-targets --no-deps -- -D warnings
+
+      - name: sccache stats
+        if: ${{ always() && inputs.sccache }}
+        run: sccache --show-stats
+
+  docs:
+    name: Documentation
+    runs-on: ${{ inputs.runner }}
+    env:
+      RUSTC_WRAPPER: ${{ inputs.sccache && 'sccache' || '' }}
+      SCCACHE_BUCKET: ${{ inputs.sccache && 'sccache' || '' }}
+      SCCACHE_REGION: ${{ inputs.sccache && 'us-east-1' || '' }}
+      SCCACHE_ENDPOINT: ${{ inputs.sccache && 'http://10.0.0.167:9000' || '' }}
+      SCCACHE_S3_USE_SSL: ${{ inputs.sccache && 'false' || '' }}
+      AWS_ACCESS_KEY_ID: ${{ inputs.sccache && 'minioadmin' || '' }}
+      AWS_SECRET_ACCESS_KEY: ${{ inputs.sccache && 'minioadmin' || '' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Start sccache
+        if: ${{ inputs.sccache }}
+        run: sccache --start-server || true
+
+      - name: Generate documentation
+        run: cargo +nightly doc ${{ inputs.workspace && '--workspace' || '' }} --no-deps --document-private-items
+        env:
+          RUSTDOCFLAGS: -D warnings
+
+  test:
+    name: Test
+    runs-on: ${{ inputs.runner }}
+    env:
+      RUSTC_WRAPPER: ${{ inputs.sccache && 'sccache' || '' }}
+      SCCACHE_BUCKET: ${{ inputs.sccache && 'sccache' || '' }}
+      SCCACHE_REGION: ${{ inputs.sccache && 'us-east-1' || '' }}
+      SCCACHE_ENDPOINT: ${{ inputs.sccache && 'http://10.0.0.167:9000' || '' }}
+      SCCACHE_S3_USE_SSL: ${{ inputs.sccache && 'false' || '' }}
+      AWS_ACCESS_KEY_ID: ${{ inputs.sccache && 'minioadmin' || '' }}
+      AWS_SECRET_ACCESS_KEY: ${{ inputs.sccache && 'minioadmin' || '' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Start sccache
+        if: ${{ inputs.sccache }}
+        run: sccache --start-server || true
+
+      - name: Run tests
+        run: cargo nextest run ${{ inputs.workspace && '--workspace' || '' }}
+
+  rust-success:
+    name: Rust Success
+    runs-on: ${{ inputs.runner }}
+    needs: [clippy, docs, test]
+    if: always()
+    steps:
+      - name: Check all Rust jobs status
+        env:
+          CLIPPY_RESULT: ${{ needs.clippy.result }}
+          DOCS_RESULT: ${{ needs.docs.result }}
+          TEST_RESULT: ${{ needs.test.result }}
+        run: |
+          if [[ "$CLIPPY_RESULT" != "success" || \
+                "$DOCS_RESULT" != "success" || \
+                "$TEST_RESULT" != "success" ]]; then
+            echo "One or more Rust jobs failed"
+            echo "  clippy: $CLIPPY_RESULT"
+            echo "  docs:   $DOCS_RESULT"
+            echo "  test:   $TEST_RESULT"
+            exit 1
+          fi
+          echo "All Rust jobs passed successfully"
