@@ -6,6 +6,8 @@ on:
       runner:
         description: "Runner label"
         type: string
+        # arc-runner-set: private repos on GitHub Free plan cannot use
+        # ubuntu-latest for reusable workflows triggered by non-public callers.
         default: "arc-runner-set"
       project-url:
         description: "GitHub Projects V2 URL (e.g. https://github.com/orgs/rararulab/projects/1)"
