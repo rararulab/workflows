@@ -6,6 +6,7 @@ Delete branches from closed (not merged) PRs matching a prefix.
 
 | Input | Type | Default | Description |
 |-------|------|---------|-------------|
+| `runner` | string | `ubuntu-latest` | Runner label |
 | `branch-prefix` | string | `release-plz-` | Branch prefix to match |
 
 ## Caller Trigger

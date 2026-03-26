@@ -6,6 +6,7 @@ Automatically add new issues and PRs to a GitHub Projects V2 board.
 
 | Input | Type | Default | Description |
 |-------|------|---------|-------------|
+| `runner` | string | `arc-runner-set` | Runner label |
 | `project-url` | string | *required* | GitHub Projects V2 URL |
 
 ## Secrets

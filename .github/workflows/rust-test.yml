@@ -15,6 +15,14 @@ on:
         description: "Enable sccache (requires MinIO on the runner network)"
         type: boolean
         default: false
+      sccache-endpoint:
+        description: "S3-compatible endpoint for sccache storage"
+        type: string
+        default: "http://10.0.0.167:9000"
+      sccache-bucket:
+        description: "S3 bucket name for sccache"
+        type: string
+        default: "sccache"
 
 concurrency:
   group: rust-${{ github.event.pull_request.number || github.sha }}
@@ -41,10 +49,11 @@ jobs:
     runs-on: ${{ inputs.runner }}
     env:
       RUSTC_WRAPPER: ${{ inputs.sccache && 'sccache' || '' }}
-      SCCACHE_BUCKET: ${{ inputs.sccache && 'sccache' || '' }}
+      SCCACHE_BUCKET: ${{ inputs.sccache && inputs.sccache-bucket || '' }}
       SCCACHE_REGION: ${{ inputs.sccache && 'us-east-1' || '' }}
-      SCCACHE_ENDPOINT: ${{ inputs.sccache && 'http://10.0.0.167:9000' || '' }}
+      SCCACHE_ENDPOINT: ${{ inputs.sccache && inputs.sccache-endpoint || '' }}
       SCCACHE_S3_USE_SSL: ${{ inputs.sccache && 'false' || '' }}
+      # Default MinIO credentials — safe to hardcode (local dev/CI only)
       AWS_ACCESS_KEY_ID: ${{ inputs.sccache && 'minioadmin' || '' }}
       AWS_SECRET_ACCESS_KEY: ${{ inputs.sccache && 'minioadmin' || '' }}
     steps:
@@ -69,10 +78,11 @@ jobs:
     runs-on: ${{ inputs.runner }}
     env:
       RUSTC_WRAPPER: ${{ inputs.sccache && 'sccache' || '' }}
-      SCCACHE_BUCKET: ${{ inputs.sccache && 'sccache' || '' }}
+      SCCACHE_BUCKET: ${{ inputs.sccache && inputs.sccache-bucket || '' }}
       SCCACHE_REGION: ${{ inputs.sccache && 'us-east-1' || '' }}
-      SCCACHE_ENDPOINT: ${{ inputs.sccache && 'http://10.0.0.167:9000' || '' }}
+      SCCACHE_ENDPOINT: ${{ inputs.sccache && inputs.sccache-endpoint || '' }}
       SCCACHE_S3_USE_SSL: ${{ inputs.sccache && 'false' || '' }}
+      # Default MinIO credentials — safe to hardcode (local dev/CI only)
       AWS_ACCESS_KEY_ID: ${{ inputs.sccache && 'minioadmin' || '' }}
       AWS_SECRET_ACCESS_KEY: ${{ inputs.sccache && 'minioadmin' || '' }}
     steps:
@@ -95,10 +105,11 @@ jobs:
     runs-on: ${{ inputs.runner }}
     env:
       RUSTC_WRAPPER: ${{ inputs.sccache && 'sccache' || '' }}
-      SCCACHE_BUCKET: ${{ inputs.sccache && 'sccache' || '' }}
+      SCCACHE_BUCKET: ${{ inputs.sccache && inputs.sccache-bucket || '' }}
       SCCACHE_REGION: ${{ inputs.sccache && 'us-east-1' || '' }}
-      SCCACHE_ENDPOINT: ${{ inputs.sccache && 'http://10.0.0.167:9000' || '' }}
+      SCCACHE_ENDPOINT: ${{ inputs.sccache && inputs.sccache-endpoint || '' }}
       SCCACHE_S3_USE_SSL: ${{ inputs.sccache && 'false' || '' }}
+      # Default MinIO credentials — safe to hardcode (local dev/CI only)
       AWS_ACCESS_KEY_ID: ${{ inputs.sccache && 'minioadmin' || '' }}
       AWS_SECRET_ACCESS_KEY: ${{ inputs.sccache && 'minioadmin' || '' }}
     steps:
