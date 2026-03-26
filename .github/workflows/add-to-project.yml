@@ -1,0 +1,24 @@
+name: Add to project
+
+on:
+  workflow_call:
+    inputs:
+      project-url:
+        description: "GitHub Projects V2 URL (e.g. https://github.com/orgs/rararulab/projects/1)"
+        type: string
+        required: true
+    secrets:
+      ADD_TO_PROJECT_TOKEN:
+        description: "PAT with project write scope"
+        required: true
+
+jobs:
+  add-to-project:
+    name: Add to project board
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add to project
+        uses: actions/add-to-project@v1.0.2
+        with:
+          project-url: ${{ inputs.project-url }}
+          github-token: ${{ secrets.ADD_TO_PROJECT_TOKEN }}
