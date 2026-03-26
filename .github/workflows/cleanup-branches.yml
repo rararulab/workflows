@@ -3,6 +3,10 @@ name: Cleanup stale branches
 on:
   workflow_call:
     inputs:
+      runner:
+        description: "Runner label"
+        type: string
+        default: "ubuntu-latest"
       branch-prefix:
         description: "Branch prefix to match for deletion (e.g. release-plz-)"
         type: string
@@ -14,7 +18,7 @@ permissions:
 jobs:
   delete-branch:
     name: Delete closed PR branch
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
     if: >-
       github.event.pull_request.merged == false &&
       startsWith(github.event.pull_request.head.ref, inputs.branch-prefix)

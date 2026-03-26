@@ -1,0 +1,19 @@
+# Rust release via cargo-dist
+# Copy to: .github/workflows/release-dist.yml
+name: Release (cargo-dist)
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    uses: rararulab/workflows/.github/workflows/rust-release-dist.yml@main
+    with:
+      tag: ${{ github.ref_name }}
+      homebrew-tap: rararulab/homebrew-tap
+    secrets:
+      HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}

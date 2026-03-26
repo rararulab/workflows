@@ -3,6 +3,10 @@ name: Add to project
 on:
   workflow_call:
     inputs:
+      runner:
+        description: "Runner label"
+        type: string
+        default: "arc-runner-set"
       project-url:
         description: "GitHub Projects V2 URL (e.g. https://github.com/orgs/rararulab/projects/1)"
         type: string
@@ -15,7 +19,7 @@ on:
 jobs:
   add-to-project:
     name: Add to project board
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
     steps:
       - name: Add to project
         uses: actions/add-to-project@v1.0.2

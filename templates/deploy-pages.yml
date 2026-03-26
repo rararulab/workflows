@@ -1,0 +1,17 @@
+# Deploy static site to GitHub Pages
+# Copy to: .github/workflows/deploy-pages.yml
+name: Deploy Pages
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    uses: rararulab/workflows/.github/workflows/deploy-pages.yml@main
+    with:
+      build-command: "mdbook build docs"
+      output-dir: "docs/book"

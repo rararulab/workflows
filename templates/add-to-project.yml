@@ -13,5 +13,6 @@ jobs:
     uses: rararulab/workflows/.github/workflows/add-to-project.yml@main
     with:
       project-url: https://github.com/orgs/rararulab/projects/1
+      runner: arc-runner-set
     secrets:
       ADD_TO_PROJECT_TOKEN: ${{ secrets.ADD_TO_PROJECT_TOKEN }}
