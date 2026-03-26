@@ -17,7 +17,7 @@ on:
       runner:
         description: "Runner label"
         type: string
-        default: "self-hosted"
+        default: "ubuntu-latest"
 
 concurrency:
   group: pages-${{ github.ref }}

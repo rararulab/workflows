@@ -6,7 +6,7 @@ Go lint + test + optional binary build.
 
 | Input | Type | Default | Description |
 |-------|------|---------|-------------|
-| `go-version` | string | `1.26` | Go version |
+| `go-version` | string | `stable` | Go version |
 | `runner` | string | `ubuntu-latest` | Runner for lint job |
 | `build-binary` | string | `""` | Binary name (empty = skip build) |
 | `build-path` | string | `.` | Go build path |
